@@ -4,9 +4,7 @@ Fit/startup/performance evidence for the official
 [deepseek-ai/DeepSeek-V4-Flash-Vision-Exp](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash-Vision-Exp)
 checkpoint (FP8 e4m3, 48 shards, 167.83 GB) on a two-node DGX Spark
 kit. Status: **BLOCKED at the storage gate — no model action has run
-yet**. This repository carries the sanitized evidence trail; the
-tracking issue is
-[PixelML#70](https://github.com/seanphan/pixelml/issues/70).
+yet**. This repository carries the sanitized public evidence trail.
 
 ## TL;DR
 
@@ -34,7 +32,7 @@ tracking issue is
 
 | Gate | Result | Evidence |
 |---|---|---|
-| Ownership | PASS (both nodes; zero GPU compute processes) | #46 release receipt + fresh probe |
+| Ownership | PASS (both nodes; zero GPU compute processes) | sanitized release receipt + fresh probe |
 | OOM stability | PASS-EXTENDING (burst ended 21:12 local; 0 OOM/Xid in last 30 min; window now ~3 h) | kernel journal, sanitized counts only |
 | Accelerators | PASS (GB10 x2, idle, 45-48 C, no throttle flags) | nvidia-smi |
 | Interconnect | PASS (RDMA/RoCE peers up on both nodes) | rdma tools |
@@ -45,8 +43,7 @@ See [EVIDENCE.md](EVIDENCE.md) for the full sanitized preflight.
 
 ## Ladder (planned, gated)
 
-1. Storage unblock (owner action; three options posted to the tracking
-   issue).
+1. Storage unblock (owner action recorded in internal tracking).
 2. Single-node import/capacity gate: bounded load attempt with
    memory telemetry; capacity failure is a valid terminal verdict.
 3. Two-node distributed ladder: TP=2 via the supported runtime path,

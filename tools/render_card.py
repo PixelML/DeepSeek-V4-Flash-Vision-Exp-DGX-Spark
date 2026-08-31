@@ -74,7 +74,7 @@ for t in fit:
 
 d.text((62, H-150), "Checkpoint pinned at revision 86f746b (82 files / 48 shards,", font=f22, fill=MUT)
 d.text((62, H-115), "167,831,846,872 bytes) verified on canonical model storage.", font=f22, fill=MUT)
-d.text((62, H-70), "Tracking: github.com/seanphan/pixelml issue #70 - sanitized evidence", font=f22, fill=MUT)
+d.text((62, H-70), "Public benchmark evidence - internal tracking omitted", font=f22, fill=MUT)
 
 import os
 os.makedirs("assets", exist_ok=True)
