@@ -1,7 +1,7 @@
 # Evidence log — Vision-Exp on 2x DGX Spark
 
-Sanitized, chronological. No raw logs, IPs, hostnames, private tracking
-references, or process identifiers.
+Sanitized, chronological. Internal coordination receipts are omitted.
+No raw logs, IPs, hostnames, or process identifiers.
 
 ## 2026-08-31 — preflight (read-only)
 
@@ -58,7 +58,7 @@ references, or process identifiers.
 | central library path present | no | no |
 | Fast writable non-root path | none configured | none configured |
 | Root NVMe | 3.7 TB vol, ~1.6 TB free — **forbidden for weights** | same |
-| Shared WIP mount | present on node A — **policy-forbidden VM boot disk** | absent |
+| Other shared boot-disk mount | present on node A — **policy-forbidden for weights** | absent |
 
 - Canonical checkpoint verified present on the central model store at
   the pinned revision: exact CMP-verified inventory (82 files / 48
@@ -79,8 +79,8 @@ references, or process identifiers.
 ### Verdict
 
 **BLOCKED_STORAGE.** Four of five preflight gates pass; the storage
-gate fails and blocks all model actions. Three owner-unblock options
-are recorded in internal tracking. No transfer, mount, service, or
+gate fails and blocks all model actions. Owner-unblock options were
+recorded internally. No transfer, mount, service, or
 model action has been performed by this lane.
 
 ## Pending (gated on storage unblock)
@@ -89,3 +89,67 @@ model action has been performed by this lane.
 - Two-node distributed ladder (TP=2, supported runtime).
 - Performance + quality smoke at fixed prompts.
 - Node release receipt.
+
+## 2026-08-31 — storage correction and safety re-resolution
+
+- **Correction:** this DGX lane is independent from the other hardware
+  environment. The earlier cross-cluster canonical-export path is
+  withdrawn and must not be mounted or reused. Historical TP=1
+  capacity evidence is retained, but that path is not an approved
+  recipe.
+- The prior lane-owned D-state engine cleared naturally. Fresh bounded
+  read-only probes found zero GPU compute processes and zero D-state
+  processes on both nodes, stable available memory, idle/cool
+  accelerators, and no OOM/Xid in the preceding hour. No remediation
+  occurred.
+- Both intended node-local user caches resolve to writable,
+  non-rotational NVMe-backed storage with ample capacity. The pinned
+  snapshot is incomplete on node A (57 files, 26 shards,
+  91,467,982,585 bytes, eight partial files) and absent on node B.
+  No download was started during re-resolution.
+- **Checkpoint verdict: NO-GO / safety hold.** Natural process
+  clearance removes one blocker but does not clear the owner hold.
+  Per-node integrity proof, TP=2 startup, measurements, and publication
+  remained pending at this checkpoint.
+
+The six-phase tracked ledger is
+[notebooks/dgx-experiment-ledger.ipynb](notebooks/dgx-experiment-ledger.ipynb);
+machine-readable state is [results/ledger-state.json](results/ledger-state.json).
+
+## 2026-08-31 — authenticated-download gate
+
+- A reusable preflight now verifies Hub identity from inside the exact
+  non-interactive or container execution context and emits one field only:
+  `{"auth":true}` or `{"auth":false}`. Credential material, lookup details,
+  and authentication errors are suppressed.
+- The preflight returned `{"auth":true}` on both nodes inside the exact
+  detached-container context. No credential value or lookup detail was
+  emitted or committed.
+- Worker staging completed through the direct interconnect: 121.3 GB at
+  approximately 490 MB/s. Both node-local snapshots then passed 48/48 shard,
+  broken-link, resolved-size, and pinned-index-total checks.
+- No authenticated Hub resume was required after the original resumable
+  download. The reusable rule remains fail-closed: do not interrupt progress,
+  and resume a stalled owned download in place only after `{"auth":true}`.
+- After these gates passed, the first bounded TP=2 boot attempt started with
+  the pinned reference launcher. Its startup verdict and any measurements
+  remain pending; no ready-state or performance claim is made yet.
+
+## 2026-08-31 — auth-propagation verification receipt (live)
+
+- Owner correction processed: the authenticated-download process gate and the
+  subsequent owner merge decision (receipt retained in the private lane
+  record). No active downloader existed on either node at verification time,
+  so no owned process was interrupted and the healthy serving experiment was
+  left untouched.
+- Exact serving-container context re-verified online with offline mode flags
+  cleared for the probe only: token file present = true and authenticated
+  Hub identity probe = PASS on both nodes. Approved credential propagation is
+  persistent via the approved HF home mount; any future owned download or
+  resume inherits it in this same context.
+- Pinned checkpoint re-verified on both nodes: 48/48 safetensor shards and
+  zero incomplete blobs in the local HF hub cache. No shard growth during
+  sampling; historical partials are stale leftovers from the superseded
+  cache path and are not part of the verified snapshot.
+- Serving containers report healthy in the exact detached context. Ledger
+  updated with this receipt; merge readiness gates unchanged.

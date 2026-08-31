@@ -1,6 +1,13 @@
 #!/usr/bin/env python3
 """Render the deterministic PixelML status card (1240x1550)."""
+import json
+from pathlib import Path
+
 from PIL import Image, ImageDraw, ImageFont
+
+ROOT = Path(__file__).resolve().parents[1]
+LEDGER = json.loads((ROOT / "results" / "ledger-state.json").read_text())
+ATTEMPTS = {item["attempt"]: item for item in LEDGER["attempts"]}
 
 W, H = 1240, 1550
 BG = (13, 17, 23)
@@ -10,7 +17,6 @@ FG = (230, 237, 243)
 MUT = (139, 148, 158)
 ACCENT = (255, 196, 0)
 PASS = (63, 185, 80)
-FAIL = (248, 81, 73)
 
 img = Image.new("RGB", (W, H), BG)
 d = ImageDraw.Draw(img)
@@ -38,17 +44,17 @@ d.text((62, 190), "FP8 e4m3 checkpoint - 48 shards - 167.83 GB", font=f26, fill=
 
 # Status panel
 d.rounded_rectangle((60, 260, W-60, 420), radius=18, fill=PANEL, outline=ACCENT, width=3)
-d.text((90, 290), "STATUS: BLOCKED - STORAGE GATE", font=f34, fill=ACCENT)
-d.text((90, 345), "All model actions held. No bytes transferred, no mounts,", font=f26, fill=MUT)
-d.text((90, 382), "no loads. Four of five preflight gates PASS (read-only).", font=f26, fill=MUT)
+d.text((90, 290), "STATUS: WORKER STAGING IN FLIGHT", font=f34, fill=ACCENT)
+d.text((90, 345), "Head checkpoint verified complete; worker download is running.", font=f26, fill=MUT)
+d.text((90, 382), "No model-load or GPU process was started for checkpoint staging.", font=f26, fill=MUT)
 
 rows = [
     ("Ownership (both nodes, zero GPU compute)", "PASS", PASS),
-    ("OOM stability (burst closed, quiet ~3 h and extending)", "PASS", PASS),
-    ("Accelerators (GB10 x2 idle, 45-48 C, no throttling)", "PASS", PASS),
+    ("Prior owned D-state process (natural clearance)", "PASS", PASS),
+    ("Accelerators (GB10 x2 idle/cool; no recent OOM/Xid)", "PASS", PASS),
     ("Interconnect (RDMA/RoCE direct links up)", "PASS", PASS),
-    ("Fast non-root model storage (none configured)", "FAIL", FAIL),
-    ("Runtime (vision vLLM image present on both nodes)", "PASS", PASS),
+    ("Head node-local checkpoint (48/48 shards)", ATTEMPTS["head-integrity-1"]["result"], PASS),
+    ("Worker node-local checkpoint", "RUNNING", ACCENT),
 ]
 y = 470
 d.text((62, y - 40), "Preflight gates - 2026-08-31 (read-only)", font=f30, fill=MUT)
@@ -61,9 +67,10 @@ for label, verdict, color in rows:
     y += 108
 
 fit = [
-    "Single-node fit: 167.83 GB FP8 vs 128 GiB UMA - capacity verdict expected.",
-    "Two-node TP=2: 256 GiB aggregate covers the checkpoint on paper (inferred).",
-    "Next GPU action when unblocked: single-node import, then 2-node ladder.",
+    "Single-node TP=1: CAPACITY_FAIL measured; prior source now withdrawn.",
+    "Head node-local checkpoint: 48/48 shards and index size verified.",
+    "Worker node-local download: resumable and revision-pinned; integrity pending.",
+    "Two-node TP=2: untested until worker integrity passes.",
 ]
 y += 30
 d.text((62, y), "Fit notes", font=f30, fill=MUT)
@@ -73,10 +80,10 @@ for t in fit:
     yy += 44
 
 d.text((62, H-150), "Checkpoint pinned at revision 86f746b (82 files / 48 shards,", font=f22, fill=MUT)
-d.text((62, H-115), "167,831,846,872 bytes) verified on canonical model storage.", font=f22, fill=MUT)
-d.text((62, H-70), "Public benchmark evidence - internal tracking omitted", font=f22, fill=MUT)
+d.text((62, H-115), "167,831,846,872 repository bytes) is complete on the head node.", font=f22, fill=MUT)
+d.text((62, H-70), "Sanitized public evidence - no private infrastructure identifiers", font=f22, fill=MUT)
 
 import os
-os.makedirs("assets", exist_ok=True)
-img.save("assets/status-card.png", optimize=True)
+os.makedirs(ROOT / "assets", exist_ok=True)
+img.save(ROOT / "assets" / "status-card.png", optimize=True)
 print("saved assets/status-card.png", img.size)
