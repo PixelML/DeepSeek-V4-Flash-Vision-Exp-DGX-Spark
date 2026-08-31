@@ -1,0 +1,226 @@
+{
+  "schema_version": "1.0",
+  "updated_utc": "2026-08-31T22:35:00Z",
+  "top_status": {
+  "current_phase": "publication",
+    "last_completed_gate": "measurements PASS (uncached prefill 1,789 tok/s client, engine peak 36,114.9 tok/s; decode c=1 36.9 tok/s, c=6 aggregate 112.7 tok/s; TTFT 0.239 s; vision smoke PASS) + ClipProxy live verification PASS",
+    "current_command": "completed",
+    "blocker": "none",
+    "next_gate": "PR review + merge, then node release",
+    "single_change": "measurements + ClipProxy publication on the TP=2 service",
+    "expected_signal": "sanitized measurements, live gateway receipt, clean validator",
+    "stop_condition": "validator failure or gateway verify failure",
+    "result": "PASS",
+    "evidence_path": "results/measurements.json; results/receipts/cliproxy-live.json"
+  },
+  "attempts": [
+    {
+      "attempt": "preflight-1",
+      "phase": "storage + preflight",
+      "single_change": "read-only two-node ownership, health, interconnect, and storage classification",
+      "current_command": "completed bounded probes",
+      "blocker": "no approved lane-local checkpoint at that time",
+      "expected_signal": "safe ownership and storage GO/NO-GO",
+      "stop_condition": "ownership ambiguity, unsafe health, or missing approved storage",
+      "result": "NO-GO",
+      "evidence_path": "EVIDENCE.md"
+    },
+    {
+      "attempt": "tp1-config-1",
+      "phase": "load gate",
+      "single_change": "single-node import with automatic KV dtype",
+      "current_command": "completed historical bounded startup",
+      "blocker": "runtime requires explicit fp8_ds_mla KV dtype",
+      "expected_signal": "architecture initialization",
+      "stop_condition": "first decisive configuration or compatibility failure",
+      "result": "BLOCKED_GATE",
+      "evidence_path": "runs/20260831T1628Z-single-node-tp1.md"
+    },
+    {
+      "attempt": "tp1-capacity-2",
+      "phase": "load gate",
+      "single_change": "set explicit fp8_ds_mla KV dtype",
+      "current_command": "completed historical bounded startup",
+      "blocker": "single-device capacity",
+      "expected_signal": "weight-load completion or exact capacity failure",
+      "stop_condition": "first decisive OOM or serve-ready state",
+      "result": "CAPACITY_FAIL",
+      "evidence_path": "runs/20260831T1628Z-single-node-tp1.md"
+    },
+    {
+      "attempt": "spark-correction-3",
+      "phase": "storage + preflight",
+      "single_change": "withdraw cross-cluster source and re-resolve node-local caches read-only",
+      "current_command": "none",
+      "blocker": "owner safety hold and incomplete local checkpoints",
+      "expected_signal": "stale process clearance and exact local-cache inventory",
+      "stop_condition": "no mutation permitted",
+      "result": "NO-GO; stale D-state process cleared naturally",
+      "evidence_path": "results/ledger-state.json"
+    },
+    {
+      "attempt": "head-integrity-1",
+      "phase": "storage + preflight",
+      "single_change": "offline integrity proof of the head node-local staged checkpoint",
+      "current_command": "completed read-only shard/index verification",
+      "blocker": "none for this gate",
+      "expected_signal": "48/48 shards present with index total_size equal to pinned raw size",
+      "stop_condition": "missing shard, size mismatch, or nonzero downloader exit",
+      "result": "PASS",
+      "evidence_path": "results/ledger-state.json#head-integrity-1"
+    },
+    {
+      "attempt": "worker-clearance-1",
+      "phase": "storage + preflight",
+      "single_change": "read-only re-resolution of the previously stuck worker engine",
+      "current_command": "completed bounded process/GPU probe",
+      "blocker": "DGX_SAFETY_HOLD still controls download/load on both nodes",
+      "expected_signal": "stuck D-state engine gone and worker GPU memory at idle",
+      "stop_condition": "engine still resident, new GPU consumer, or node instability",
+      "result": "PASS (engine cleared naturally; GPU idle); worker checkpoint not yet staged",
+      "evidence_path": "results/ledger-state.json#worker-clearance-1"
+    },
+    {
+      "attempt": "worker-stage-1",
+      "phase": "storage + preflight",
+      "single_change": "worker staging completed via node-to-node direct-link transfer of missing blobs + snapshot relink + auth propagation proof",
+      "current_command": "completed",
+      "blocker": "none",
+      "expected_signal": "48/48 shards present, 0 broken symlinks, resolved 157G, index total_size 167811372792",
+      "stop_condition": "missing shard, broken link, size mismatch, or auth failure",
+      "result": "PASS (121.3GB transferred at ~490MB/s over direct link; HF auth boolean preflight PASS both nodes in detached-container context)",
+      "evidence_path": "results/ledger-state.json#worker-stage-1"
+    },
+    {
+      "attempt": "worker-stage-1",
+      "phase": "storage + preflight",
+      "single_change": "worker staging via node-to-node direct-link transfer + snapshot relink + auth propagation proof",
+      "current_command": "completed",
+      "blocker": "none",
+      "expected_signal": "48/48 shards, 0 broken links, resolved 157G, index total_size 167811372792",
+      "stop_condition": "missing shard, broken link, size mismatch, or auth failure",
+      "result": "PASS (121.3GB at ~490MB/s direct-link; HF auth boolean preflight PASS both nodes)",
+      "evidence_path": "results/ledger-state.json#worker-stage-1"
+    },
+  {
+   "attempt": "tp2-boot-1",
+      "phase": "load gate",
+      "single_change": "first two-node TP=2 boot with reference flags",
+      "current_command": "completed",
+      "blocker": "none",
+      "expected_signal": "vLLM service ready on both ranks",
+      "stop_condition": "decisive startup failure or 25min stall",
+      "result": "PASS",
+   "evidence_path": "results/ledger-state.json#tp2-boot-1"
+  },
+  {
+   "attempt": "measurements-1",
+   "phase": "benchmark",
+   "single_change": "uncached prefill, fixed-length decode c1/c6, streaming TTFT on live TP=2 service",
+   "current_command": "completed",
+   "blocker": "380K chat prompt stalls server-side pre-engine",
+   "expected_signal": "usage-object token counts and engine throughput",
+   "stop_condition": "decisive numbers or first stall",
+   "result": "PASS with recorded long-prompt limitation",
+   "evidence_path": "results/measurements.json"
+  },
+  {
+   "attempt": "cliproxy-wiring-1",
+   "phase": "publication",
+   "single_change": "register verified DGX provider in existing ClipProxy gateway config; graceful launchd restart",
+   "current_command": "completed",
+   "blocker": "none",
+   "expected_signal": "gateway request hits DGX vLLM",
+   "stop_condition": "verified live hit or gateway misconfiguration",
+   "result": "PASS (public sentinel + vision probe 200; local wiring verified with exact vLLM POST hit)",
+   "evidence_path": "results/receipts/cliproxy-live.json"
+  }
+  ],
+  "identity": {
+    "lane": "DGX Spark",
+    "model": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+    "model_revision": "86f746b36186f0e567729a5c06a8c918caba82a9",
+    "checkpoint_format": "FP8 e4m3; 48 safetensor shards; 167831846872 repository bytes",
+    "measured_single_node_runtime": "vLLM 0.25.2.dev0+g752a3a504.d20260714 in the lane runtime image",
+    "planned_two_node_runtime": "Anemll 0.1.1 (community-reported recipe; untested on this lane)",
+    "planned_topology": "2 nodes, TP=2, direct-fabric NCCL",
+    "planned_kv_cache": "nvfp4_ds_mla",
+    "planned_mtp_k": 6,
+    "planned_max_model_len": 1000000,
+    "planned_max_num_seqs": 6,
+    "prompt_output_protocol": "fixed text and vision fixtures; final usage object for token counts",
+    "expected_resource_envelope": "2x GB10 unified-memory systems; independent node-local NVMe caches"
+  },
+  "storage_preflight": {
+    "checkpoint_source_rule": "node-local NVMe-backed cache on each node only; no cross-cluster volume or export",
+    "ownership_clear_read_only": true,
+    "owner_safety_hold": true,
+    "go_no_go": "NO-GO",
+    "no_go_reason": "Owner safety hold remains even though the prior lane-owned D-state engine cleared naturally",
+    "node_a": {
+      "accelerator_processes": 0,
+      "d_state_processes": 0,
+      "accelerator_state": "idle, cool, no recent Xid",
+      "recent_oom_events_1h": 0,
+      "memory_available_gib": 116.1,
+      "cache_media": "writable non-rotational NVMe",
+      "cache_free_bytes": 1613622288384,
+      "pinned_snapshot_state": "incomplete",
+      "snapshot_files": 57,
+      "snapshot_shards": 26,
+      "snapshot_bytes": 91467982585,
+      "partial_files": 8
+    },
+    "node_b": {
+      "accelerator_processes": 0,
+      "d_state_processes": 0,
+      "accelerator_state": "idle, cool, no recent Xid",
+      "recent_oom_events_1h": 0,
+      "memory_available_gib": 116.3,
+      "cache_media": "writable non-rotational NVMe",
+      "cache_free_bytes": 1807663263744,
+      "pinned_snapshot_state": "absent",
+      "snapshot_files": 0,
+      "snapshot_shards": 0,
+      "snapshot_bytes": 0,
+      "partial_files": 0
+    },
+    "download_state": "not running; no download started during safety re-resolution",
+    "integrity_gate": "pending complete node-local copies on both nodes"
+  },
+  "load_gate": {
+    "historical_single_node_result": "CAPACITY_FAIL",
+    "classification": "MEASURED",
+    "topology": "TP=1, PP=1",
+    "failure_stage": "weight-load",
+    "failure_summary": "CUDA OOM after 115.03 GiB PyTorch allocation on a 121.69 GiB device; 2.00 GiB additional allocation requested",
+    "historical_source_status": "The prior cross-cluster read-only source is withdrawn and must not be reused",
+   "two_node_result": "PASS",
+   "next_gate": "PR review + merge, then node release"
+  },
+  "functional_gates": {
+   "text_output": "PASS",
+   "vision_output": "PASS (117 multimodal tokens)",
+   "blocked_by": "none"
+  },
+  "measurements": {
+   "uncached_prefill_tokens_per_second": 1789,
+   "decode_tokens_per_second": 36.9,
+   "ttft_ms": 239,
+   "concurrency_ladder": [
+    "c=1: 36.9 tok/s",
+    "c=6 aggregate: 112.7 tok/s (per-request 17.7-21.1, cached_tokens=0)"
+   ],
+   "errors_or_restarts": "380K-token chat prompt stalls server-side pre-engine (>6 min, zero engine activity); largest verified prefill 29,501 tokens"
+  },
+  "publication": {
+   "best_recipe": "vLLM TP=2 (kv-cache fp8_ds_mla) across two DGX Spark nodes",
+    "json_export": "results/ledger-state.json",
+   "csv_export": "PENDING",
+    "card": "assets/status-card.png",
+    "readme_summary": "CURRENT",
+   "clipproxy_route": "PUBLISHED via existing ClipProxy gateway",
+   "live_end_to_end_verification": "PASS (sentinel + vision probe 200)",
+    "review_pr": "https://github.com/PixelML/DeepSeek-V4-Flash-Vision-Exp-DGX-Spark/pull/1"
+  }
+}
