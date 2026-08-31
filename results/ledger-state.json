@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0",
-  "updated_utc": "2026-08-31T22:20:00Z",
+  "updated_utc": "2026-08-31T22:35:00Z",
   "top_status": {
-    "current_phase": "functional gates",
-    "last_completed_gate": "TP=2 boot PASS + text smoke PASS + vision smoke PASS; live auth-propagation verification PASS in exact serving-container context on both nodes (token present, online Hub identity probe PASS); staged checkpoint re-verified 48/48 both nodes",
-    "current_command": "service healthy; smoke complete",
+  "current_phase": "publication",
+    "last_completed_gate": "measurements PASS (uncached prefill 1,789 tok/s client, engine peak 36,114.9 tok/s; decode c=1 36.9 tok/s, c=6 aggregate 112.7 tok/s; TTFT 0.239 s; vision smoke PASS) + ClipProxy live verification PASS",
+    "current_command": "completed",
     "blocker": "none",
-    "next_gate": "uncached prefill + decode/TTFT measurements",
-    "single_change": "first TP=2 boot attempt only",
-    "expected_signal": "vLLM ready, both GPUs loaded, NCCL over RoCE direct links",
-    "stop_condition": "first decisive compatibility/startup failure or 25min without progress",
-    "result": "API 200; tp=2; text completion OK; vision multimodal tokens OK",
-    "evidence_path": "results/ledger-state.json"
+    "next_gate": "PR review + merge, then node release",
+    "single_change": "measurements + ClipProxy publication on the TP=2 service",
+    "expected_signal": "sanitized measurements, live gateway receipt, clean validator",
+    "stop_condition": "validator failure or gateway verify failure",
+    "result": "PASS",
+    "evidence_path": "results/measurements.json; results/receipts/cliproxy-live.json"
   },
   "attempts": [
     {
@@ -102,8 +102,8 @@
       "result": "PASS (121.3GB at ~490MB/s direct-link; HF auth boolean preflight PASS both nodes)",
       "evidence_path": "results/ledger-state.json#worker-stage-1"
     },
-    {
-      "attempt": "tp2-boot-1",
+  {
+   "attempt": "tp2-boot-1",
       "phase": "load gate",
       "single_change": "first two-node TP=2 boot with reference flags",
       "current_command": "completed",
@@ -111,8 +111,30 @@
       "expected_signal": "vLLM service ready on both ranks",
       "stop_condition": "decisive startup failure or 25min stall",
       "result": "PASS",
-      "evidence_path": "results/ledger-state.json#tp2-boot-1"
-    }
+   "evidence_path": "results/ledger-state.json#tp2-boot-1"
+  },
+  {
+   "attempt": "measurements-1",
+   "phase": "benchmark",
+   "single_change": "uncached prefill, fixed-length decode c1/c6, streaming TTFT on live TP=2 service",
+   "current_command": "completed",
+   "blocker": "380K chat prompt stalls server-side pre-engine",
+   "expected_signal": "usage-object token counts and engine throughput",
+   "stop_condition": "decisive numbers or first stall",
+   "result": "PASS with recorded long-prompt limitation",
+   "evidence_path": "results/measurements.json"
+  },
+  {
+   "attempt": "cliproxy-wiring-1",
+   "phase": "publication",
+   "single_change": "register verified DGX provider in existing ClipProxy gateway config; graceful launchd restart",
+   "current_command": "completed",
+   "blocker": "none",
+   "expected_signal": "gateway request hits DGX vLLM",
+   "stop_condition": "verified live hit or gateway misconfiguration",
+   "result": "PASS (public sentinel + vision probe 200; local wiring verified with exact vLLM POST hit)",
+   "evidence_path": "results/receipts/cliproxy-live.json"
+  }
   ],
   "identity": {
     "lane": "DGX Spark",
@@ -173,29 +195,32 @@
     "failure_stage": "weight-load",
     "failure_summary": "CUDA OOM after 115.03 GiB PyTorch allocation on a 121.69 GiB device; 2.00 GiB additional allocation requested",
     "historical_source_status": "The prior cross-cluster read-only source is withdrawn and must not be reused",
-    "two_node_result": "UNTESTED",
-    "next_gate": "Complete and verify node-local caches, then obtain explicit safety/resource GO before TP=2 startup"
+   "two_node_result": "PASS",
+   "next_gate": "PR review + merge, then node release"
   },
   "functional_gates": {
-    "text_output": "UNTESTED",
-    "vision_output": "UNTESTED",
-    "blocked_by": "DGX_SAFETY_HOLD and incomplete node-local checkpoints"
+   "text_output": "PASS",
+   "vision_output": "PASS (117 multimodal tokens)",
+   "blocked_by": "none"
   },
   "measurements": {
-    "uncached_prefill_tokens_per_second": null,
-    "decode_tokens_per_second": null,
-    "ttft_ms": null,
-    "concurrency_ladder": [],
-    "errors_or_restarts": "Single-node CAPACITY_FAIL measured; two-node service not started"
+   "uncached_prefill_tokens_per_second": 1789,
+   "decode_tokens_per_second": 36.9,
+   "ttft_ms": 239,
+   "concurrency_ladder": [
+    "c=1: 36.9 tok/s",
+    "c=6 aggregate: 112.7 tok/s (per-request 17.7-21.1, cached_tokens=0)"
+   ],
+   "errors_or_restarts": "380K-token chat prompt stalls server-side pre-engine (>6 min, zero engine activity); largest verified prefill 29,501 tokens"
   },
   "publication": {
-    "best_recipe": "UNTESTED",
+   "best_recipe": "vLLM TP=2 (kv-cache fp8_ds_mla) across two DGX Spark nodes",
     "json_export": "results/ledger-state.json",
-    "csv_export": "PENDING measured service",
+   "csv_export": "PENDING",
     "card": "assets/status-card.png",
     "readme_summary": "CURRENT",
-    "clipproxy_route": "NOT_PUBLISHED",
-    "live_end_to_end_verification": "NOT_RUN",
+   "clipproxy_route": "PUBLISHED via existing ClipProxy gateway",
+   "live_end_to_end_verification": "PASS (sentinel + vision probe 200)",
     "review_pr": "https://github.com/PixelML/DeepSeek-V4-Flash-Vision-Exp-DGX-Spark/pull/1"
   }
 }
