@@ -1,13 +1,9 @@
 # Evidence log — Vision-Exp on 2x DGX Spark
 
-Sanitized, chronological. Every entry links its tracking-issue
-receipt. No raw logs, IPs, hostnames, or process identifiers.
+Sanitized, chronological. No raw logs, IPs, hostnames, private tracking
+references, or process identifiers.
 
 ## 2026-08-31 — preflight (read-only)
-
-Receipts: [#70 ack](https://github.com/seanphan/pixelml/issues/70#issuecomment-5480349566) |
-[#46 release](https://github.com/seanphan/pixelml/issues/46#issuecomment-5480046695) |
-[storage verdict](https://github.com/seanphan/pixelml/issues/70#issuecomment-5480508581)
 
 ### Ownership
 
@@ -84,7 +80,7 @@ Receipts: [#70 ack](https://github.com/seanphan/pixelml/issues/70#issuecomment-5
 
 **BLOCKED_STORAGE.** Four of five preflight gates pass; the storage
 gate fails and blocks all model actions. Three owner-unblock options
-are posted on the tracking issue. No transfer, mount, service, or
+are recorded in internal tracking. No transfer, mount, service, or
 model action has been performed by this lane.
 
 ## Pending (gated on storage unblock)
