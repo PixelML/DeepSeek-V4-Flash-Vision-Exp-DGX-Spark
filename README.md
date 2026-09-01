@@ -10,35 +10,29 @@ carries the sanitized public evidence trail.
 
 ## TL;DR
 
-- **Current state: staging complete on both nodes; authentication PASS.**
-  A former
-  cross-cluster storage assumption is withdrawn; that path must not be
-  mounted or reused.
-- Single-node startup gate **measured**. Attempt 1: BLOCKED_GATE — the
-  fp8_ds_mla KV layout requires an explicit fp8 kv-cache dtype (config
-  assert, fixed with `--kv-cache-dtype fp8_ds_mla`). Attempt 2: passed
-  architecture/import and streamed weights from the canonical export,
-  then **CUDA OOM during weight load**: 115.03 GiB PyTorch-allocated of
-  121.69 GiB total, 2.09 GiB free, 2.00 GiB requested.
-- **Verdict: CAPACITY_FAIL — one GB10 cannot serve the 167.83 GB
-  checkpoint at TP=1.** Engine exited cleanly; checkpoint untouched.
-- The lane-owned stuck process cleared naturally. A fresh read-only
-  check found both accelerators idle, zero GPU/D-state processes, stable
-  memory, and no recent OOM/Xid. This cleared the stale-process blocker;
-  checkpoint staging was subsequently authorized.
-- Both node-local checkpoints are integrity-complete: 48/48 shards,
-  zero broken links, and the pinned index total on each node. Worker
-  staging completed through the direct interconnect; no model-load or
-  GPU process was started for staging.
-- Hub authentication returns `{"auth":true}` inside the exact detached
-  container context on both nodes. The preflight never prints credential
-  material.
-- The first bounded TP=2 boot attempt is now in progress. If it reaches
-  ready state, the lane proceeds to measured prefill/decode/TTFT, then
-  the full completion bar: quality smoke, ClipProxy wiring, live
-  verified request, independent exact-head review.
+- **Current state: normalized benchmark COMPLETE on the frozen vLLM TP=2
+  recipe** — correctness (text + vision), exact 2,941-token uncached
+  prefill, warm streaming TTFT, and the full C1–C16 greedy 400-token
+  ladder are measured with zero errors and zero restarts.
+- Uncached prefill: 2,941 tokens in 1.877711 s (**1,566.3 tok/s**,
+  `cached_tokens=0`). Warm streaming TTFT median **0.323 s**.
+- Aggregate decode throughput (median of 3 reps, exactly 400 completion
+  tokens per request): **C1 48.7 · C2 71.0 · C4 71.5 · C8 94.9 ·
+  C16 106.8 tok/s**. Per-request ranges and full usage live in
+  [results/receipts/normalized-ladder-20260901.json](results/receipts/normalized-ladder-20260901.json).
+- The source-locked vision-routing optimization was a terminal negative:
+  steady C1 fell from **50.36 tok/s** to **42.52 tok/s** (**-15.6%**).
+  Text and real-image correctness passed in both arms, the original files
+  were restored by hash, and the full treatment ladder was correctly skipped.
+- Correctness gates PASS: the fixture answer (10 berths; E3/W2
+  cold-iron) and a real image probe (solid red 1x1 PNG, 117 multimodal
+  tokens) both answered correctly; the vision prompt never discloses
+  the expected answer.
+- Single-node TP=1 capacity remains a measured FAIL (167.83 GB FP8
+  checkpoint); two-node TP=2 vLLM is the working recipe. The SGLang
+  two-node path closed as a measured host-RAM OOM (attempt 3).
 
-![status card](assets/status-card.png)
+![normalized ladder](assets/normalized-ladder-20260901.png)
 
 The tracked six-phase experiment ledger is
 [notebooks/dgx-experiment-ledger.ipynb](notebooks/dgx-experiment-ledger.ipynb),
@@ -63,16 +57,38 @@ See [EVIDENCE.md](EVIDENCE.md) for the full sanitized preflight and
 [runs/20260831T1628Z-single-node-tp1.md](runs/20260831T1628Z-single-node-tp1.md)
 for the measured single-node run manifest.
 
+## External baseline note (not directly comparable)
+
+The Mia 2x DGX Spark repository README is Vision-Exp-framed today, but its
+detailed headline matrices and raw JSON are explicitly dated **0731** and
+were produced under a **different protocol**: 256/2K/8K/32K/128K prompt
+lengths, concurrency 1/2/4/6, forced 128-token decode windows, unique cold
+prefixes, thinking off, and median per-stream decode after first token.
+Those numbers are therefore labeled **COMMUNITY-REPORTED 0731 / NOT
+DIRECTLY COMPARABLE** with this repository's Vision-Exp ladder (exact
+2,941-token fixture, C1-C16, exactly 400 completion tokens, warmup + 3
+reps, synchronized aggregate wall). No head-to-head claim is made.
+
+Runtime configuration evidenced in this repository's receipts: vLLM TP=2,
+nvfp4_ds_mla KV cache, max_model_len 1,048,576, max_num_seqs 6,
+speculative tokens 6, max batched tokens 8192, and
+VLLM_USE_BREAKABLE_CUDAGRAPH=0 (regular CUDA graphs). Any knob not
+listed here is not claimed as active.
+
 ## Ladder status
 
 1. ~~Node-local checkpoint preparation~~ DONE — both nodes PASS.
-   Cross-cluster storage is withdrawn.
-2. ~~Single-node import/capacity gate~~ DONE — measured CAPACITY_FAIL
-   at TP=1 (see run manifest).
-3. Two-node distributed ladder: first bounded TP=2 startup attempt —
-   **IN PROGRESS**; TTFT/decode/throughput follow only after ready state.
-4. Terminal verdict + measured service publication + independent
-   exact-head review — PENDING.
+2. ~~Single-node import/capacity gate~~ DONE — measured CAPACITY_FAIL at TP=1.
+3. ~~Two-node TP=2 vLLM serving~~ DONE — frozen recipe, private-overlay API,
+   text + vision correctness PASS.
+4. ~~Normalized benchmark~~ DONE — exact 2,941-token uncached fixture,
+   warm TTFT 0.323 s, C1–C16 ladder (0 errors / 93 requests, 0 restarts,
+   peak 75 C). Chart: [assets/normalized-ladder-20260901.png](assets/normalized-ladder-20260901.png);
+   video: [assets/normalized-ladder-20260901.mp4](assets/normalized-ladder-20260901.mp4).
+5. ~~Pinned vision-routing A/B~~ DONE — treatment regressed steady C1 by
+   15.6%; rollback and post-rollback text + image verification PASS.
+6. Public-history retention check + independent exact-head review — PENDING;
+   do not merge until both gates pass.
 
 ## Protocol
 

@@ -1,0 +1,307 @@
+{
+  "schema": "dsv4-normalized-ladder/1.0",
+  "started_utc": "2026-09-01T16:44:34.024590+00:00",
+  "model_id": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+  "model_id_scope": "public checkpoint identifier; private serving alias omitted",
+  "sampling": {
+    "temperature": 0,
+    "max_tokens": 400
+  },
+  "fixture_sha256": "f09ab0414a45c50f3f40785ef828785f8b75ebaba1cd987edfcc4c47941a1ee6",
+  "phases": {
+    "correctness_text": {
+      "ok": true,
+      "wall_s": 1.365,
+      "usage": {
+        "prompt_tokens": 2941,
+        "total_tokens": 3001,
+        "completion_tokens": 60,
+        "prompt_tokens_details": {
+          "cached_tokens": 2816,
+          "multimodal_tokens": null
+        }
+      },
+      "expects": "total berths=10; cold-iron berths E3 and W2",
+      "pass": true,
+      "answer_excerpt": "Total berths: 10\n\nCold-iron shore power: E3 and W2 We need answer simple. Need compute total berths east 6 + west 4 =10. Cold-iron shore power E3 and W2. Need two short lines. Ensure no extra."
+    },
+    "correctness_vision": {
+      "ok": true,
+      "wall_s": 1.52,
+      "usage": {
+        "prompt_tokens": 222,
+        "total_tokens": 286,
+        "completion_tokens": 64,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "multimodal_tokens": {
+            "image": 117
+          }
+        }
+      },
+      "expects": "model identifies a red image (answer not disclosed in prompt)",
+      "pass": true,
+      "answer_excerpt": "The image is a solid, uniform red rectangle. There are no other colors, shapes, patterns, or text visible. The user wants me to describe an image. The image is a solid red rectangle. There are no other details, shapes, or text. I will describe it as a solid red image."
+    },
+    "uncached_prefill_2941_tokens": {
+      "source": "timed curl POST of /tmp/dsv4-fixture-2941.json, first cold post after freeze",
+      "prompt_tokens": 2941,
+      "completion_tokens": 1,
+      "cached_tokens": 0,
+      "wall_s": 1.877711
+    },
+    "natural_stop_baseline": {
+      "ok": true,
+      "finish_reason": "stop",
+      "usage": {
+        "prompt_tokens": 2941,
+        "total_tokens": 3002,
+        "completion_tokens": 61,
+        "prompt_tokens_details": {
+          "cached_tokens": 2816,
+          "multimodal_tokens": null
+        }
+      },
+      "wall_s": 1.394,
+      "answer_excerpt": "Total berths: 10  \nCold-iron shore power: E3 and W2"
+    },
+    "warm_stream_ttft_2941_tokens": [
+      {
+        "ok": true,
+        "ttft_s": 0.36553878399718087,
+        "first_chunk_s": 0.3656532159948256,
+        "chunks": 2,
+        "rep": 1
+      },
+      {
+        "ok": true,
+        "ttft_s": 0.30386523199558724,
+        "first_chunk_s": 0.30406012799357995,
+        "chunks": 2,
+        "rep": 2
+      },
+      {
+        "ok": true,
+        "ttft_s": 0.30219561100238934,
+        "first_chunk_s": 0.30237969099835027,
+        "chunks": 2,
+        "rep": 3
+      }
+    ],
+    "c1": {
+      "concurrency": 1,
+      "warmup": {
+        "all_ok": true
+      },
+      "reps": [
+        {
+          "rep": 1,
+          "requests": [
+            {
+              "ok": true,
+              "wall_s": 10.911602860011044,
+              "usage": {
+                "prompt_tokens": 2941,
+                "total_tokens": 3341,
+                "completion_tokens": 400,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2816,
+                  "multimodal_tokens": null
+                }
+              },
+              "body": {
+                "id": "chatcmpl-a34cbbbca9656d40",
+                "object": "chat.completion",
+                "created": 1788281090,
+                "model": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+                "choices": [
+                  {
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "Total berths: 10  \nCold-iron shore power: E3 and W2\n<alt>\nTotal berths: 10\nCold-iron shore power: E3 and W2\n</alt>\n0, total berths 10, cold-iron E3 and W2. Need answer in two short lines.Total berths: 10  \nCold-iron shore power: E3 and W2 about Market, total from E1-E6 6 + W1-W4 4 =10. Cold-iron shore power: E3 and W2. Need answer in two short lines.Total berths: 10  \nCold-iron shore power: E3 and W2 about Total berths: 10\nCold-iron shore power: E3 and W2 about Maybe final should be exactly two lines. Done.Total berths: 10  \nCold-iron shore power: E3 and W2 about Need to ensure no extra. final.Total berths: 10  \nCold-iron shore power: E3 and W2 about Need to maybe \"E3 and W2\" yes. final.Total berths: 10  \nCold-iron shore power: E3 and W2# <total berths: 10\nCold-iron shore power: E3 and W2# Need final.Total berths: 10  \nCold-iron shore power:",
+                      "refusal": null,
+                      "annotations": null,
+                      "audio": null,
+                      "function_call": null,
+                      "reasoning": "We need answer simple. Need compute total berths east 6 + west 4 =10. Cold-iron shore power E3 and W2. Need two short lines. Ensure no extra."
+                    },
+                    "logprobs": null,
+                    "finish_reason": "length",
+                    "stop_reason": null,
+                    "token_ids": null,
+                    "routed_experts": null
+                  }
+                ],
+                "service_tier": null,
+                "system_fingerprint": "vllm-0.25.2.dev0+g752a3a504.d20260714-tp2-6a9f4136",
+                "usage": {
+                  "prompt_tokens": 2941,
+                  "total_tokens": 3341,
+                  "completion_tokens": 400,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 2816,
+                    "multimodal_tokens": null
+                  }
+                },
+                "prompt_logprobs": null,
+                "prompt_token_ids": null,
+                "prompt_text": null,
+                "kv_transfer_params": null,
+                "metrics": null
+              }
+            }
+          ],
+          "level_t0": 96853.257472221,
+          "level_t1": 96864.169936859,
+          "level_wall_s": 10.912464638007805,
+          "successful_requests": 1,
+          "aggregate_decode_tok_s": 36.66,
+          "per_request": [
+            36.66
+          ],
+          "thermal_after": "71, 35.93 W"
+        },
+        {
+          "rep": 2,
+          "requests": [
+            {
+              "ok": true,
+              "wall_s": 12.622810620989185,
+              "usage": {
+                "prompt_tokens": 2941,
+                "total_tokens": 3341,
+                "completion_tokens": 400,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2816,
+                  "multimodal_tokens": null
+                }
+              },
+              "body": {
+                "id": "chatcmpl-b5a8dfc0de623647",
+                "object": "chat.completion",
+                "created": 1788281101,
+                "model": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+                "choices": [
+                  {
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "Total berths: 10  \nCold-iron shore power: E3 and W2\n<alted>0</alted> about Log 23? Wait final? Need answer only.Total berths: 10  \nCold-iron shore power: E3 and W2\nTotal berths: 10\nCold-iron shore power: E3 and W2 about Final, maybe \"Total berths: 10\" and \"Cold-iron shore power: E3 and W2\". Need two short lines. Done.Total berths: 10  \nCold-iron shore power: E3 and W2# Logs entry, Answer in two short lines. Total berths: 10\nCold-iron shore power: E3 and W2 <Total berths: 10\nCold-iron shore: E3 and W2. Need \"cold-iron shore power\" maybe. final.Total berths: 10  \nCold-iron shore power: E3 and W2 < < < Logs, W2. Need final.Total berths: 10  \nCold-iron shore power: E3 and W2 < < W2. Need final. < Final. Need final.Total berths: 10  \nCold-iron shore power: E3 and W2 < W2. < W2. < W",
+                      "refusal": null,
+                      "annotations": null,
+                      "audio": null,
+                      "function_call": null,
+                      "reasoning": "We need answer simple. Need compute total berths east 6 + west 4 =10. Cold-iron shore power E3 and W2. Need two short lines. Ensure no extra."
+                    },
+                    "logprobs": null,
+                    "finish_reason": "length",
+                    "stop_reason": null,
+                    "token_ids": null,
+                    "routed_experts": null
+                  }
+                ],
+                "service_tier": null,
+                "system_fingerprint": "vllm-0.25.2.dev0+g752a3a504.d20260714-tp2-6a9f4136",
+                "usage": {
+                  "prompt_tokens": 2941,
+                  "total_tokens": 3341,
+                  "completion_tokens": 400,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 2816,
+                    "multimodal_tokens": null
+                  }
+                },
+                "prompt_logprobs": null,
+                "prompt_token_ids": null,
+                "prompt_text": null,
+                "kv_transfer_params": null,
+                "metrics": null
+              }
+            }
+          ],
+          "level_t0": 96864.224176453,
+          "level_t1": 96876.847450131,
+          "level_wall_s": 12.623273677992984,
+          "successful_requests": 1,
+          "aggregate_decode_tok_s": 31.69,
+          "per_request": [
+            31.69
+          ],
+          "thermal_after": "72, 35.88 W"
+        },
+        {
+          "rep": 3,
+          "requests": [
+            {
+              "ok": true,
+              "wall_s": 7.712280716004898,
+              "usage": {
+                "prompt_tokens": 2941,
+                "total_tokens": 3341,
+                "completion_tokens": 400,
+                "prompt_tokens_details": {
+                  "cached_tokens": 2816,
+                  "multimodal_tokens": null
+                }
+              },
+              "body": {
+                "id": "chatcmpl-ab005b71396d1061",
+                "object": "chat.completion",
+                "created": 1788281113,
+                "model": "deepseek-ai/DeepSeek-V4-Flash-Vision-Exp",
+                "choices": [
+                  {
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "Total berths: 10  \nCold-iron shore power: E3 and W2\nTotal berths: 10\nCold-iron shore power: E3 and W2\nTotal berths: 10\nCold-iron shore power: E3 and W2\n Need final? We can answer.Total berths: 10  \nCold-iron shore power: E3 and W2\nTotal berths: 10\nCold-iron shore power: E3 and W2\nNeed final? We can answer.Total berths: 10  \nCold-iron shore power: E3 and W2\nTotal berths: 10\nCold-iron shore power: E3 and W2\nNeed final? We can answer.Total berths: 10  \nCold-iron shore power: E3 and W2\nNeed total berths across both quays and cold-iron berths. Answer two short lines.Total berths: 10  \nCold-iron shore power: E3 and W2\nNeed total berths across both quays and cold-iron berths. Answer two short lines.Total berths: 10  \nCold-iron shore power: E3 and W2 with total Need total berths across both quays and cold-iron berths. Answer two short lines.Total berths: 10  \nCold-iron shore power: E3 and W2 with Need total berths across both quays and cold-iron berths. Answer two short lines.Total berths: 10  \nCold-iron shore power",
+                      "refusal": null,
+                      "annotations": null,
+                      "audio": null,
+                      "function_call": null,
+                      "reasoning": "We need answer simple. Need compute total berths east 6 + west 4 = 10. Cold-iron shore power E3 and W2. Need two short lines. Ensure no extra."
+                    },
+                    "logprobs": null,
+                    "finish_reason": "length",
+                    "stop_reason": null,
+                    "token_ids": null,
+                    "routed_experts": null
+                  }
+                ],
+                "service_tier": null,
+                "system_fingerprint": "vllm-0.25.2.dev0+g752a3a504.d20260714-tp2-6a9f4136",
+                "usage": {
+                  "prompt_tokens": 2941,
+                  "total_tokens": 3341,
+                  "completion_tokens": 400,
+                  "prompt_tokens_details": {
+                    "cached_tokens": 2816,
+                    "multimodal_tokens": null
+                  }
+                },
+                "prompt_logprobs": null,
+                "prompt_token_ids": null,
+                "prompt_text": null,
+                "kv_transfer_params": null,
+                "metrics": null
+              }
+            }
+          ],
+          "level_t0": 96876.878249978,
+          "level_t1": 96884.591171719,
+          "level_wall_s": 7.712921740996535,
+          "successful_requests": 1,
+          "aggregate_decode_tok_s": 51.86,
+          "per_request": [
+            51.87
+          ],
+          "thermal_after": "72, 36.89 W"
+        }
+      ]
+    }
+  },
+  "finished_utc": "2026-09-01T16:45:21.748925+00:00",
+  "container_restarts": "0 2026-09-01T16:35:32.670012072Z",
+  "final_thermal": "72, 36.64 W"
+}

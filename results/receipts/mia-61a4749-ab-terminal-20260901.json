@@ -1,0 +1,59 @@
+{
+  "schema": "pixelml-ab-terminal-receipt/1.0",
+  "experiment": "vision-exp-single-variable-speed-ab",
+  "decision": "ROLLBACK",
+  "decision_rationale": "treatment median C1 decode throughput was 15.6 percent below control on the steady-state protocol and 24 percent below on the harness protocol; the success gate required at least +10 percent improvement, so the full ladder was not run",
+  "measured_at_utc": "2026-09-01",
+  "control_arm": {
+    "files": "lane recipe base dbdd8ce (three vision_exp files by exact SHA-256)",
+    "steady_c1_tok_s": [50.36, 47.38, 60.58, 30.53, 58.68],
+    "steady_c1_median_tok_s": 50.36,
+    "harness_c1_tok_s_first_boot": [24.73, 25.25, 57.15],
+    "harness_c1_median_first_boot": 25.25,
+    "harness_c1_tok_s_rerun": [36.66, 31.69, 51.86],
+    "harness_c1_median_rerun": 36.66,
+    "ttft_s": [0.370, 0.301, 0.314],
+    "correctness_text": true,
+    "correctness_vision": true,
+    "restarts": 0,
+    "peak_thermal_c": 72,
+    "cuda_graph_mode": "PIECEWISE + FULL + dspark FULL captured, no fallback",
+    "draft_acceptance_avg_percent_range": "33-52",
+    "usage_contract": "prompt_tokens=2941, completion_tokens=400, cached_tokens=2816 on warm reps, finish=length"
+  },
+  "treatment_arm": {
+    "source_lock": "exact file state at upstream pinned commit 61a4749 (not a raw diff apply); SHA-256 verified on both nodes before launch and inside the running container mount",
+    "steady_c1_tok_s": [21.7, 26.31, 49.39, 47.2, 42.52],
+    "steady_c1_median_tok_s": 42.52,
+    "harness_c1_tok_s": [50.11, 25.47, 27.93],
+    "harness_c1_median": 27.93,
+    "ttft_s": [0.367, 0.313, 0.312],
+    "correctness_text": true,
+    "correctness_vision": true,
+    "restarts": 0,
+    "peak_thermal_c": 70,
+    "cuda_graph_mode": "PIECEWISE + FULL captured, no fallback",
+    "draft_acceptance_avg_percent_range": "12-42",
+    "usage_contract": "prompt_tokens=2941, completion_tokens=400, cached_tokens=2816 on warm reps, finish=length"
+  },
+  "delta": {
+    "steady_median_percent": -15.6,
+    "harness_median_percent": -24.0,
+    "ttft_medians_s": {"control": 0.314, "treatment": 0.313}
+  },
+  "rollback_execution": {
+    "completed": true,
+    "method": "stopped lane-owned service, restored the three base files by exact SHA-256 on both nodes, cleared stale pycache, restarted via the proven lane start script",
+    "post_rollback_service": "healthy, HTTP 200, boot warmup 47/47",
+    "post_rollback_correctness": {
+      "text_pass": true,
+      "vision_pass": true,
+      "text_usage": {"prompt_tokens": 2941, "completion_tokens": 63, "cached_tokens": 0},
+      "vision_usage": {"prompt_tokens": 222, "completion_tokens": 90, "multimodal_image_tokens": 117}
+    },
+    "file_hash_prefix_head": "1042d54609cc2741",
+    "file_hash_prefix_worker": "1042d54609cc2741"
+  },
+  "variance_note": "single-request C1 on this hardware shows alternating slow/fast phases under both arms; per-rep values and both protocols are preserved in the raw receipt files, and the decision uses the identical steady-state protocol on both arms (5 back-to-back reps after a full harness pass)",
+  "public_claim": "Vision-Exp measured on this stack; external 0731 numbers are community-reported under a different protocol and are not directly comparable"
+}

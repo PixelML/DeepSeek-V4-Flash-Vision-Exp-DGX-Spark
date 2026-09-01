@@ -1,0 +1,61 @@
+{
+  "schema": "sglang-two-node-attempt/1.0",
+  "verified_utc": "2026-09-01T19:05:00Z",
+  "engine_class": "SGLang dev image for the vision model family, arm64",
+  "runtime_image_digest_sha256": "fd08873759ca5e261e022ba761cc65208a92ea9c7d7302738b9417810d810869",
+  "model_revision": "86f746b36186f0e567729a5c06a8c918caba82a9",
+  "weights_class": "target-local non-root snapshot directory, identical byte count on both nodes",
+  "topology": "SGLang TP=2 x 2 GB10 nodes, direct-interconnect NCCL/gloo, head-rank 0 + worker-rank 1",
+  "attempt_history": [
+    {
+      "attempt": 1,
+      "failure_class": "hf-offline-connect-error",
+      "cause": "launch passed the hub repository id while the runtime ran with hub offline mode enabled; the loader attempted a network metadata fetch and failed",
+      "fix": "point --model-path directly at the verified local snapshot directory"
+    },
+    {
+      "attempt": 2,
+      "failure_class": "gloo-wrong-interface",
+      "cause": "process-group transport bound to the loopback interface and failed connectFullMesh against the peer rank",
+      "fix": "pin the gloo and NCCL socket interface environment variables to the direct interconnect interface"
+    },
+    {
+      "attempt": 3,
+      "failure_class": "host-ram-oom-during-fp8-dequant",
+      "outcome_classification": "MEASURED: kernel OOM-kill of the rank-0 scheduler process for this exact attempt",
+      "terminal_verdict_classification": "INFERRED, not measured: terminal for this dev image + FP8 checkpoint + host-side dequant path on two-node GB10 in the tested configuration",
+      "observed": {
+        "distributed_init": "passed (NCCL 2.30.7, gloo over direct interconnect)",
+        "weight_shards_loaded": "48 of 48 in approximately 37 seconds",
+        "last_progress_line_class": "streaming dequant fp8 stage for the first expert projection",
+        "scheduler_exit_code": -9,
+        "container_memory_limit": "unlimited (docker memory/swap/reservation limits all unset)",
+        "node_mem_total_gib": 121.69,
+        "node_mem_available_gib_at_current_idle": 10.21,
+        "oom_report_zone_free_mib": {
+          "normal_zone_free": 368.7,
+          "dma_zone_free": 484.3
+        },
+        "oom_report_swap": {
+          "total_swap_gib": 16.0,
+          "free_swap_at_kill_mib": 0.21
+        },
+        "oom_report_anon_pages_gib": {
+          "active": 23.75,
+          "inactive": 16.37
+        },
+        "killed_process_anon_rss_gib": 40.7,
+        "killed_process_virtual_address_space_gib": 393.4,
+        "virtual_address_space_note": "virtual reservation only; not resident physical memory",
+        "head_node_state_after_kill": "recoverable; SSH accept delay of roughly 4 minutes, then memory fully released"
+      },
+      "interpretation": "host anonymous memory and swap were exhausted during streaming FP8-to-BF16 dequantization in this exact attempt (swap free 0.21 MiB of 16 GiB, Normal-zone free 368.7 MiB); both ranks were killed cleanly, no GPU Xid, no thermal breach, no reboot",
+      "verdict": "MEASURED: OOM kill of this attempt. INFERRED (not re-tested with alternative memory configurations): do not retry this dev image + FP8 checkpoint + host-side dequant path without a new owner decision, because no supported alternative host-memory configuration was verified"
+    }
+  ],
+  "remediation_within_lane_authority": [
+    "attempted no speculative memory tuning because the OOM signature is a capacity ceiling during weight conversion, not a tunable allocation",
+    "stopped the failed containers cleanly and restored the previously verified vLLM TP=2 recipe on both nodes"
+  ],
+  "notes": "Exact node names, addresses, interface names, and private identifiers intentionally omitted; they live in the private control plane only."
+}

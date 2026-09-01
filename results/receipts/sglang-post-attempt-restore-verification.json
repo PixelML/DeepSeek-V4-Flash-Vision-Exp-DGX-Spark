@@ -1,0 +1,46 @@
+{
+  "schema": "sglang-post-attempt-restore-verification/1.0",
+  "verified_utc": "2026-09-01T20:10:00Z",
+  "context": "post-attempt verification after the third SGLang two-node boot attempt ended in a host-RAM OOM kill",
+  "service_restored": {
+    "engine_class": "previously verified vLLM two-node TP=2 GB10 recipe, revision-pinned weights on target-local non-root storage",
+    "restore_order": "worker node launcher first, then head node launcher, after both accelerators were verified empty of compute apps",
+    "model_revision": "86f746b36186f0e567729a5c06a8c918caba82a9"
+  },
+  "post_restore_gates": {
+    "container_health": {
+      "state": "Up (healthy) approximately 60 minutes after restore",
+      "engine_class": "vLLM TP=2 two-node service"
+    },
+    "models_listing": {
+      "http": 200,
+      "served_ids": [
+      "REDACTED-LANE-SCOPE deepseek-v4-flash-vision-exp"
+      ],
+      "id_class": "lane-scoped vision model id"
+    },
+    "bounded_text_smoke": {
+      "http": 200,
+      "completion_tokens": 8,
+      "cached_tokens": 0
+    },
+    "bounded_image_smoke": {
+      "http": 200,
+      "multimodal_image_tokens": 117,
+      "completion_tokens": 8
+    },
+    "accelerator_health": {
+      "gpu_memory_field": "N/A under the unified-memory driver reporting",
+      "temperature_c": 54,
+      "xid_errors": "none observed",
+      "class": "within safe range"
+    }
+  },
+  "exposure_class": {
+    "head_node_private_overlay": 200,
+    "public_internet_gateway_unauthenticated": 401,
+    "worker_node_api": "not serving (expected)",
+    "conclusion": "restored service is reachable on the private overlay only; no public routing change made"
+  },
+  "notes": "Exact endpoint, node names, addresses, and private identifiers intentionally omitted from this public receipt; they live in the private control plane only."
+}
