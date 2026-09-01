@@ -1,0 +1,26 @@
+{
+  "text_pass": true,
+  "text_usage": {
+    "prompt_tokens": 2941,
+    "total_tokens": 3004,
+    "completion_tokens": 63,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "multimodal_tokens": null
+    }
+  },
+  "vision_pass": true,
+  "vision_usage": {
+    "prompt_tokens": 222,
+    "total_tokens": 312,
+    "completion_tokens": 90,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "multimodal_tokens": {
+        "image": 117
+      }
+    }
+  },
+  "text_wall_s": 3.554,
+  "vision_wall_s": 2.806
+}

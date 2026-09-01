@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0",
-  "updated_utc": "2026-08-31T22:35:00Z",
+  "updated_utc": "2026-09-01T17:50:00Z",
   "top_status": {
-  "current_phase": "publication",
-    "last_completed_gate": "measurements PASS (uncached prefill 1,789 tok/s client, engine peak 36,114.9 tok/s; decode c=1 36.9 tok/s, c=6 aggregate 112.7 tok/s; TTFT 0.239 s; vision smoke PASS) + ClipProxy live verification PASS",
-    "current_command": "completed",
-    "blocker": "none",
-    "next_gate": "PR review + merge, then node release",
-    "single_change": "measurements + ClipProxy publication on the TP=2 service",
-    "expected_signal": "sanitized measurements, live gateway receipt, clean validator",
-    "stop_condition": "validator failure or gateway verify failure",
-    "result": "PASS",
-    "evidence_path": "results/measurements.json; results/receipts/cliproxy-live.json"
+    "current_phase": "publication-remediation",
+    "last_completed_gate": "terminal negative vision-routing A/B; treatment regressed steady C1 from 50.36 to 42.52 tok/s (-15.6%); rollback and text/image verification passed",
+    "current_command": "sanitize the publication tree and repair the authorized PR branch history; no GPU or service work",
+    "blocker": "retained prohibited object must become non-retrievable through the public repository API; fresh exact-head review is also required",
+    "next_gate": "public tree/commit/PR/media scans, retained-object API check, then independent exact-head review",
+    "single_change": "publication-only remediation",
+    "expected_signal": "both tree scanners pass, current PR history uses normal project attribution, retained object is unavailable, exact-head review passes",
+    "stop_condition": "any public-boundary match, retained object still retrievable, or review finding",
+    "result": "MEASUREMENTS COMPLETE; PUBLICATION BLOCKED",
+    "evidence_path": "results/receipts/normalized-ladder-20260901.json; results/receipts/mia-61a4749-ab-terminal-20260901.json"
   },
   "attempts": [
     {
@@ -102,8 +102,8 @@
       "result": "PASS (121.3GB at ~490MB/s direct-link; HF auth boolean preflight PASS both nodes)",
       "evidence_path": "results/ledger-state.json#worker-stage-1"
     },
-  {
-   "attempt": "tp2-boot-1",
+    {
+      "attempt": "tp2-boot-1",
       "phase": "load gate",
       "single_change": "first two-node TP=2 boot with reference flags",
       "current_command": "completed",
@@ -111,30 +111,85 @@
       "expected_signal": "vLLM service ready on both ranks",
       "stop_condition": "decisive startup failure or 25min stall",
       "result": "PASS",
-   "evidence_path": "results/ledger-state.json#tp2-boot-1"
-  },
-  {
-   "attempt": "measurements-1",
-   "phase": "benchmark",
-   "single_change": "uncached prefill, fixed-length decode c1/c6, streaming TTFT on live TP=2 service",
-   "current_command": "completed",
-   "blocker": "380K chat prompt stalls server-side pre-engine",
-   "expected_signal": "usage-object token counts and engine throughput",
-   "stop_condition": "decisive numbers or first stall",
-   "result": "PASS with recorded long-prompt limitation",
-   "evidence_path": "results/measurements.json"
-  },
-  {
-   "attempt": "cliproxy-wiring-1",
-   "phase": "publication",
-   "single_change": "register verified DGX provider in existing ClipProxy gateway config; graceful launchd restart",
-   "current_command": "completed",
-   "blocker": "none",
-   "expected_signal": "gateway request hits DGX vLLM",
-   "stop_condition": "verified live hit or gateway misconfiguration",
-   "result": "PASS (public sentinel + vision probe 200; local wiring verified with exact vLLM POST hit)",
-   "evidence_path": "results/receipts/cliproxy-live.json"
-  }
+      "evidence_path": "results/ledger-state.json#tp2-boot-1"
+    },
+    {
+      "attempt": "measurements-1",
+      "phase": "benchmark",
+      "single_change": "uncached prefill, fixed-length decode c1/c6, streaming TTFT on live TP=2 service",
+      "current_command": "completed",
+      "blocker": "380K chat prompt stalls server-side pre-engine",
+      "expected_signal": "usage-object token counts and engine throughput",
+      "stop_condition": "decisive numbers or first stall",
+      "result": "PASS with recorded long-prompt limitation",
+      "evidence_path": "results/measurements.json"
+    },
+    {
+      "attempt": "cliproxy-wiring-1",
+      "phase": "publication",
+      "single_change": "register verified DGX provider in existing ClipProxy gateway config; graceful launchd restart",
+      "current_command": "completed",
+      "blocker": "none",
+      "expected_signal": "gateway request hits DGX vLLM",
+      "stop_condition": "verified live hit or gateway misconfiguration",
+      "result": "PASS (public sentinel + vision probe 200; local wiring verified with exact vLLM POST hit)",
+      "evidence_path": "results/receipts/cliproxy-live.json"
+    },
+    {
+      "attempt": "sglang-1",
+      "phase": "sglang-evaluation",
+      "single_change": "SGLang two-node boot with hub repository id passed as model path under hub offline mode",
+      "current_command": "completed",
+      "blocker": "loader attempted a network metadata fetch despite offline mode",
+      "expected_signal": "distributed init or first decisive startup failure",
+      "stop_condition": "first decisive configuration or compatibility failure",
+      "result": "FAIL (hf-offline-connect-error)",
+      "evidence_path": "results/receipts/sglang-two-node-attempts.json#attempt-1"
+    },
+    {
+      "attempt": "sglang-2",
+      "phase": "sglang-evaluation",
+      "single_change": "SGLang boot with verified local snapshot path but default process-group interface selection",
+      "current_command": "completed",
+      "blocker": "gloo transport bound to loopback and failed mesh connection against the peer rank",
+      "expected_signal": "distributed init completes with correct interface",
+      "stop_condition": "distributed-init failure",
+      "result": "FAIL (gloo-wrong-interface)",
+      "evidence_path": "results/receipts/sglang-two-node-attempts.json#attempt-2"
+    },
+    {
+      "attempt": "sglang-3",
+      "phase": "sglang-evaluation",
+      "single_change": "SGLang boot with local snapshot path plus pinned direct-interconnect socket interfaces",
+      "current_command": "completed",
+      "blocker": "host RAM and swap exhausted during streaming FP8-to-BF16 dequant; kernel killed rank-0 scheduler",
+      "expected_signal": "serve-ready state or exact memory failure",
+      "stop_condition": "OOM, Xid, thermal breach, or instability",
+      "result": "MEASURED FAIL (host-RAM OOM; retry-without-new-owner-decision verdict INFERRED); vLLM restored and reverified",
+      "evidence_path": "results/receipts/sglang-two-node-attempts.json#attempt-3; results/receipts/sglang-post-attempt-restore-verification.json"
+    },
+    {
+      "attempt": "normalized-ladder-1",
+      "phase": "normalized-benchmark",
+      "single_change": "frozen vLLM TP=2 recipe; exact 2,941-token fixture; greedy 400-token ignore_eos ladder C1-C16",
+      "current_command": "completed",
+      "blocker": "none",
+      "expected_signal": "correctness gates + uncached prefill + warm TTFT + full ladder with usage/errors/thermals",
+      "stop_condition": "errors, restarts, or thermal breach",
+      "result": "MEASURED PASS (93/93 requests, 0 errors, 0 restarts, peak 75 C)",
+      "evidence_path": "results/receipts/normalized-ladder-20260901.json"
+    },
+    {
+      "attempt": "vision-routing-ab-1",
+      "phase": "single-variable-optimization",
+      "single_change": "source-locked vision routing and CUDA-graph host-sync avoidance at pinned upstream file state 61a4749",
+      "current_command": "completed; base files restored by exact hash",
+      "blocker": "treatment failed the performance gate",
+      "expected_signal": "at least 10% higher canonical C1 with text/image correctness and stable graph mode",
+      "stop_condition": "less than 10% improvement, correctness drift, graph fallback, restart, Xid/OOM, or thermal breach",
+      "result": "TERMINAL NEGATIVE: steady C1 50.36 to 42.52 tok/s (-15.6%); rollback verification PASS",
+      "evidence_path": "results/receipts/mia-61a4749-ab-terminal-20260901.json"
+    }
   ],
   "identity": {
     "lane": "DGX Spark",
@@ -195,32 +250,44 @@
     "failure_stage": "weight-load",
     "failure_summary": "CUDA OOM after 115.03 GiB PyTorch allocation on a 121.69 GiB device; 2.00 GiB additional allocation requested",
     "historical_source_status": "The prior cross-cluster read-only source is withdrawn and must not be reused",
-   "two_node_result": "PASS",
-   "next_gate": "PR review + merge, then node release"
+    "two_node_result": "PASS",
+    "next_gate": "PR review + merge, then node release"
   },
   "functional_gates": {
-   "text_output": "PASS",
-   "vision_output": "PASS (117 multimodal tokens)",
-   "blocked_by": "none"
+    "text_output": "PASS",
+    "vision_output": "PASS (117 multimodal tokens)",
+    "blocked_by": "none"
   },
   "measurements": {
-   "uncached_prefill_tokens_per_second": 1789,
-   "decode_tokens_per_second": 36.9,
-   "ttft_ms": 239,
-   "concurrency_ladder": [
-    "c=1: 36.9 tok/s",
-    "c=6 aggregate: 112.7 tok/s (per-request 17.7-21.1, cached_tokens=0)"
-   ],
-   "errors_or_restarts": "380K-token chat prompt stalls server-side pre-engine (>6 min, zero engine activity); largest verified prefill 29,501 tokens"
+    "uncached_prefill_tokens_per_second": 1566.3,
+    "uncached_prefill_detail": "2,941 tokens / 1.877711 s, cached_tokens=0, max_tokens=1, first cold POST",
+    "ttft_warm_median_s": 0.323,
+    "ttft_reps_s": [
+      0.364,
+      0.301,
+      0.323
+    ],
+    "decode_tokens_per_second_single_request": 48.7,
+    "concurrency_ladder": [
+      "c=1: 48.7 tok/s aggregate (per-request 45.6-54.3)",
+      "c=2: 71.0 (26.0-44.7)",
+      "c=4: 71.5 (17.3-35.0)",
+      "c=8: 94.9 (10.6-26.1)",
+      "c=16: 106.8 (6.6-29.0)"
+    ],
+    "ladder_protocol": "greedy temperature=0, ignore_eos, exactly 400 completion tokens per request, warmup + 3 reps, aggregate = successful completion tokens / synchronized level wall",
+    "natural_stop_baseline": "60 completion tokens at finish=stop (fixture question answered concisely)",
+    "errors_or_restarts": "0 errors / 93 requests; 0 restarts; thermals peak 75 C, max 42 W, final 71 C"
   },
   "publication": {
-   "best_recipe": "vLLM TP=2 (kv-cache fp8_ds_mla) across two DGX Spark nodes",
+    "best_recipe": "vLLM TP=2 (kv-cache fp8_ds_mla) across two DGX Spark nodes",
     "json_export": "results/ledger-state.json",
-   "csv_export": "PENDING",
-    "card": "assets/status-card.png",
+    "csv_export": "PENDING",
+    "card": "assets/normalized-ladder-20260901.png",
     "readme_summary": "CURRENT",
-   "clipproxy_route": "PUBLISHED via existing ClipProxy gateway",
-   "live_end_to_end_verification": "PASS (sentinel + vision probe 200)",
-    "review_pr": "https://github.com/PixelML/DeepSeek-V4-Flash-Vision-Exp-DGX-Spark/pull/1"
+    "clipproxy_route": "PUBLISHED via existing ClipProxy gateway",
+    "live_end_to_end_verification": "PASS (sentinel + vision probe 200)",
+    "review_pr": "https://github.com/PixelML/DeepSeek-V4-Flash-Vision-Exp-DGX-Spark/pull/3",
+    "video": "assets/normalized-ladder-20260901.mp4"
   }
 }

@@ -1,0 +1,46 @@
+{
+  "schema": "private-route-verification/1.0",
+  "verified_utc": "2026-09-01T03:20:00Z",
+  "surface": "private-tailnet-only (no public Internet exposure)",
+  "model_id_class": "lane-scoped vision model served by a two-node private deployment",
+  "base_url_class": "private head-node address inside the tailnet, standard OpenAI-compatible /v1 path (exact URL published only in the private control plane)",
+  "immutable_bindings": {
+    "model_revision": "86f746b36186f0e567729a5c06a8c918caba82a9",
+    "runtime_image": "anemll dspark vllm gx10 0.1.1",
+    "runtime_image_digest_sha256": "a83948492cf13df455170fb42885f5ef4db54fefe0feff0f841ecbff464ac9d8",
+    "recipe_source": "private lane launch recipe (not publicly resolvable)",
+    "recipe_revision": "dbdd8ce123e8f79ac39b75f53239bda9f5be7a2be",
+    "recipe_binding_note": "recipe_revision is a private lane launch recipe, not publicly resolvable; treat as a non-reproducible binding for public readers",
+    "serving_container_image_id_sha256_prefix": "3430d6614a8e",
+    "topology": "vLLM TP=2 across two GB10 nodes, kv-cache nvfp4_ds_mla, max_model_len 1048576, max_num_seqs 6, speculative tokens 6"
+  },
+  "probes": {
+    "models_listing": {
+      "http": 200,
+      "ids_count": 1,
+      "id_class": "lane-scoped vision model id"
+    },
+    "text_completion": {
+      "http": 200,
+      "sentinel_match": "exact",
+      "sampling": {"temperature": 0, "max_tokens": 64},
+      "fixture_sha256": "fbd245708e28cda71d97bd31bb5e41258f34642817fd9d4c5854d26c97abe7e4",
+      "usage": {"prompt_tokens": 115, "completion_tokens": 41}
+    },
+    "image_completion": {
+      "http": 200,
+      "fixture_class": "1x1 red PNG data URL",
+      "fixture_sha256": "3220fc7838ccdab0a3a21b5d8498275c7abe6930abbb059e9fdb4939bba8c2fd",
+      "text_prompt_sha256": "e9f36b67c7e75125fbb4b36991d454f74d369c1be747381f69317390d1dd1081",
+      "answer": "Red",
+      "sampling": {"temperature": 0, "max_tokens": 64},
+      "usage": {"prompt_tokens": 227, "completion_tokens": 37}
+    }
+  },
+  "probe_receipt_sha256": "ed57e1eeae2ab143907d6e4dc373f0edab77a2cf3a5d9adad3bb6d4e1d18abb5",
+  "launch_findings": [
+    "Launching the two-node stack by hand with the container orchestration CLI alone loses rank-specific environment injection and fails during distributed init; the repo-provided launcher injects per-rank environment (worker first, then head) and boots cleanly.",
+    "Use the repo-provided launcher for any restart; it is the supported path."
+  ],
+  "notes": "Exact endpoint, model id, and private identifiers intentionally omitted from this public receipt; they live in the private control plane only."
+}

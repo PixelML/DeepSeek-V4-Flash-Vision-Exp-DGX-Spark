@@ -1,0 +1,89 @@
+{
+  "schema": "pixelml-ab-prerun-receipt/1.0",
+  "experiment": "vision-exp-single-variable-speed-ab",
+  "recorded_at_utc": "2026-09-01T23:40:00Z",
+  "authorization": {
+    "owner_approved": true,
+    "scope": "bounded two-node single-variable A/B with rollback",
+    "cross_lane_changes_controlling": false
+  },
+  "preflight": {
+    "passed": true,
+    "checked_at_utc": "2026-09-01T23:33:00Z",
+    "nodes": [
+      {"role": "head", "gpu_temp_c": 48, "power_draw_w": 4.7, "compute_apps": 0, "containers": 0, "oom_xid_events_30m": 0, "root_free": "1.4T"},
+      {"role": "worker", "gpu_temp_c": 45, "power_draw_w": 4.68, "compute_apps": 0, "containers": 0, "oom_xid_events_30m": 0, "root_free": "1.5T"}
+    ],
+    "service_state_before_run": "stopped (both compute apps zero, endpoint unreachable)"
+  },
+  "frozen_pins": {
+    "model": "deepseek-v4-flash-vision-exp @ 86f746b36186f0e567729a5c06a8c918caba82a9",
+    "engine": "vLLM DSpark lane recipe @ dbdd8ce123e881be6323f21fa387679c88da3df6 (control base)",
+    "runtime_image": "anemll 0.1.1",
+    "topology": "TP=2 across two DGX Spark nodes",
+    "attention_load_format": "nvfp4_ds_mla",
+    "max_context_tokens": 1048576,
+    "max_num_seqs": 6,
+    "max_num_batched_tokens": 8192,
+    "speculative_decoding": {"method": "DSpark MTP", "num_speculative_tokens": 6},
+    "cuda_graphs": "regular (breakable disabled via env var)",
+    "kv_dtype_and_sampling": "fixed, unchanged from frozen recipe"
+  },
+  "hypothesis": {
+    "statement": "Backporting the pinned upstream vision routing/capture-host-sync change improves low-concurrency decode throughput by routing image placeholder rows with a dedicated bias and avoiding a host sync during CUDA graph capture, without regressing text-only or vision correctness.",
+    "primary_metric": "median C1 decode tok/s across 3 measured reps after warmup, canonical fixture",
+    "success_threshold": "median C1 improvement >= 10 percent vs control, with 100 percent deterministic-text and real-image correctness, zero errors, zero restarts, no graph fallback, no Xid/OOM, no thermal breach",
+    "on_success": "run the full C1/C2/C4/C8/C16 ladder once on the treatment build",
+    "on_failure": "roll back to control file state, restart, re-verify service, preserve a terminal negative receipt; no further optimization"
+  },
+  "canonical_fixture": {
+    "path_on_head": "/tmp/dsv4-fixture-2941.json",
+    "sha256": "eb3d2efb4d30eaac24df6079e5b1341d271cad475214f15d8967f363f3e0736a",
+    "prompt_tokens": 2941,
+    "completion_tokens": 400,
+    "sampling": "temperature=0, ignore_eos=true"
+  },
+  "source_lock": {
+    "method": "exact-file-state at pinned upstream commit 61a4749b291630a2a675a9f48458fbff7ab1bd59; NOT a raw git apply of its diff",
+    "reason": "the pinned commit's diff does not apply cleanly onto the lane base because two intermediate upstream commits also touched these files; the routing change depends on definitions introduced by those intermediates, so the minimum coherent unit is the three files' exact state at the pinned commit",
+    "treatment_files_sha256": {
+      "patches/vision_exp/apply.py": "6d5e6d50208850e361f4447834f1c062f6a8fcf8183e3ed27372c7587a74d9c7",
+      "patches/vision_exp/image_processor.py": "a71004ab217a72200569e1bd49ab3c3ad56a7ab40631db71d8b68cc46712ba72",
+      "patches/vision_exp/processor.py": "165ee5a1fe128e1ebf0cbdc6d08d4145d39a11289c68f3c0eff548ff81ca6fed"
+    },
+    "control_files_sha256": {
+      "patches/vision_exp/apply.py": "1042d54609cc2741807166429bce78c7860932836596a1adb310f5cce3dfc0ef",
+      "patches/vision_exp/image_processor.py": "7424cbe1db0319371844dc6dfcd7640eb405d1c722f394eebc1ec6ff8c4687fe",
+      "patches/vision_exp/processor.py": "ac9b01871286bf088f4df75547e7b6384e1990209c3c472ce0e63ce8c20ae142"
+    },
+    "functional_delta_summary": [
+      "image placeholder token rows routed with a dedicated VL top-k bias and no hash-table lookup; text rows keep the stock path",
+      "mixed text/image batches split before routing",
+      "CUDA graph capture avoids the host-synchronizing item() call via a stream-capture guard",
+      "MegaMoE forward wraps router compute to select the split routing path"
+    ]
+  },
+  "rollback": {
+    "steps": [
+      "stop the lane-owned two-node service with the proven stop script",
+      "restore the three control files by exact SHA-256 on the head recipe tree",
+      "restart via the proven start script (it syncs patches to the worker before launch)",
+      "verify /v1/models, deterministic text, and real-image correctness before declaring rollback complete"
+    ]
+  },
+  "stop_conditions": [
+    "ownership conflict or unknown heavy workload appears on either node",
+    "OOM event, Xid error, or thermal breach",
+    "CUDA graph fallback detected in server logs",
+    "service instability (endpoint unreachable, rank loss, or crash loop)",
+    "correctness drift in deterministic text or real-image gates",
+    "any single-arm completion token count or prompt token count deviates from the fixture contract"
+  ],
+  "measurement_plan": {
+    "warmup": "one unmeasured canonical request per arm before measured reps",
+    "per_arm": "3 measured C1 reps (400 completion tokens), streaming TTFT per rep, usage objects recorded, per-request wall and tok/s",
+    "extra_gates": "deterministic text correctness, real 1x1 red-image correctness without answer disclosure, graph mode from logs, thermals per rep, restart count, draft acceptance metrics when exposed",
+    "optional_diagnostic_only": "256/128-token rows clearly labeled diagnostic, excluded from the decision metric",
+    "prior_control_reference": "C1 median 48.7 tok/s (45.6-54.3 range), TTFT median 0.323 s from the earlier full frozen-recipe ladder"
+  }
+}
