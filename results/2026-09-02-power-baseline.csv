@@ -1,0 +1,5 @@
+node,mean_power_w,samples,window
+head,30.41,,baseline benchmark window
+worker,38.09,,baseline benchmark window
+head,32.18,,fp8_ds_mla KV-dtype benchmark window
+worker,39.09,,fp8_ds_mla KV-dtype benchmark window

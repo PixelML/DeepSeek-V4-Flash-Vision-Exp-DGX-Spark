@@ -1,0 +1,41 @@
+{
+  "k": "6",
+  "runs": [
+    {
+      "rep": 0,
+      "latency_s": 11.893,
+      "completion_tokens": 400,
+      "finish_reason": "length",
+      "tok_per_s": 33.63
+    },
+    {
+      "rep": 1,
+      "latency_s": 12.215,
+      "completion_tokens": 400,
+      "finish_reason": "length",
+      "tok_per_s": 32.75
+    },
+    {
+      "rep": 2,
+      "latency_s": 12.747,
+      "completion_tokens": 400,
+      "finish_reason": "length",
+      "tok_per_s": 31.38
+    }
+  ],
+  "median_latency_s": 12.215,
+  "median_tok_per_s": 32.75,
+  "acceptance_rate": 0.21762820512820513,
+  "accepted_tokens_per_position": {
+    "0": 332.0,
+    "1": 180.0,
+    "2": 96.0,
+    "3": 46.0,
+    "4": 18.0,
+    "5": 7.0
+  },
+  "spec_decode_delta": {
+    "num_draft_tokens_total": 3120.0,
+    "num_accepted_tokens_total": 679.0
+  }
+}
