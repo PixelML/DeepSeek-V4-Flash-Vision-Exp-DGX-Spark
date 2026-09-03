@@ -8,6 +8,13 @@ fit); both node-local checkpoints and exact-context Hub authentication
 PASS**. This repository
 carries the sanitized public evidence trail.
 
+[![DGX Spark Vision benchmark video](docs/benchmark-video-poster.png)](docs/benchmark-video.mp4)
+
+The 8-second video above is the mobile-readable publication cut. Its editable
+HyperFrames source and public data payload are in
+[`docs/benchmark-video/`](docs/benchmark-video/) and
+[`results/benchmark-video.json`](results/benchmark-video.json).
+
 ## TL;DR
 
 - **Current state: normalized benchmark COMPLETE on the frozen vLLM TP=2
