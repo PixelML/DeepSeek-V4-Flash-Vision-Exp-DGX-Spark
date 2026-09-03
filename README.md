@@ -4,6 +4,13 @@
 
 This repository is the sanitized, reproducible evidence trail for that recipe: fit gates, startup gates, measured throughput, a k-value ablation, and two rejected one-variable changes.
 
+[![DGX Spark Vision benchmark video](docs/benchmark-video-poster.png)](docs/benchmark-video.mp4)
+
+The 8-second video above is the mobile-readable publication cut. Its editable
+HyperFrames source and public data payload are in
+[`docs/benchmark-video/`](docs/benchmark-video/) and
+[`results/benchmark-video.json`](results/benchmark-video.json).
+
 ## Verified configuration
 
 | Component | Pin |

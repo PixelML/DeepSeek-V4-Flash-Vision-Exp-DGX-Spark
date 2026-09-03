@@ -1,0 +1,45 @@
+{
+  "title": "DeepSeek V4 Vision · DGX Spark",
+  "subtitle": "2× DGX Spark GB10 · vLLM TP=2 · FP8",
+  "eyebrow": "MEASURED · VLLM TP=2",
+  "headline": "106.8 TOK/S @ C16",
+  "status": "C1→C16 COMPLETE",
+  "scenes": [
+    {
+      "label": "01 · VISION CORRECTNESS",
+      "title": "Image path passed",
+      "body": "Red-pixel probe answered correctly; 117 multimodal image tokens observed.",
+      "fixture": {
+        "top": "#e84a5f",
+        "bottom": "#e84a5f",
+        "caption": "1×1 RED PNG"
+      },
+      "metrics": [
+        { "value": "PASS", "label": "image smoke · 0 errors" },
+        { "value": "117", "label": "multimodal image tokens" }
+      ]
+    },
+    {
+      "label": "02 · NORMALIZED LADDER",
+      "title": "Aggregate decode scales",
+      "body": "Greedy 400-token requests · warmup + 3 reps · synchronized wall denominator.",
+      "metrics": [
+        { "value": "48.7→106.8", "label": "C1 → C16 aggregate tok/s" },
+        { "value": "0 / 93", "label": "errors / requests" }
+      ]
+    }
+  ],
+  "summary": [
+    { "value": "106.8", "label": "tok/s aggregate @ C16" },
+    { "value": "48.7", "label": "tok/s aggregate @ C1" },
+    { "value": "1,566", "label": "tok/s uncached prefill" },
+    { "value": "0.323 s", "label": "warm TTFT median" }
+  ],
+  "verdict": "Vision correctness and C1–C16 decode are measured on 2× DGX Spark.",
+  "limitation": "SGLang two-node path hit host-RAM OOM; vLLM is the measured recipe.",
+  "footer": [
+    "REV 86f746b3 · FP8",
+    "0 ERRORS · 93 REQUESTS",
+    "PIXELML HARDWARE LAB"
+  ]
+}
