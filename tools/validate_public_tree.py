@@ -35,6 +35,15 @@ RULES = {
     "full GPU UUID": re.compile(r"\bGPU-[0-9a-f-]{16,}\b", re.I),
 }
 
+# Decode only publication text. Raw compressed media bytes can contain byte
+# sequences that look like issue-style numbers, which are not public strings
+# and create false positives in the boundary scan.
+BINARY_SUFFIXES = {
+    ".7z", ".avi", ".bin", ".gif", ".gz", ".ico", ".jpeg", ".jpg", ".m4a",
+    ".mkv", ".mov", ".mp3", ".mp4", ".pdf", ".png", ".tar", ".tgz", ".wav",
+    ".webm", ".webp", ".woff", ".woff2", ".zip",
+}
+
 
 def tracked_files() -> list[Path]:
     output = subprocess.check_output(
@@ -50,6 +59,8 @@ def main() -> int:
         for name, pattern in RULES.items():
             if pattern.search(rel):
                 failures.append(f"{rel}: filename violates {name}")
+        if path.suffix.lower() in BINARY_SUFFIXES:
+            continue
         text = path.read_bytes().decode("utf-8", errors="ignore")
         for line_number, line in enumerate(text.splitlines(), start=1):
             for name, pattern in RULES.items():
